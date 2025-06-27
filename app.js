@@ -257,9 +257,13 @@ app.get('/', async (req, res) => {
 // API endpoint to get weather for user's browser location
 app.post('/api/weather/location', async (req, res) => {
   try {
+    console.log('POST /api/weather/location - Request body:', req.body);
+    console.log('POST /api/weather/location - Request headers:', req.headers);
+    
     const { lat, lon } = req.body;
     
     if (!lat || !lon) {
+      console.log('Missing lat/lon - lat:', lat, 'lon:', lon);
       return res.status(400).json({ error: 'Latitude and longitude are required' });
     }
     
@@ -267,9 +271,11 @@ app.post('/api/weather/location', async (req, res) => {
     const weather = await getWeatherData(lat, lon);
     
     if (!weather) {
+      console.log('Weather data returned null');
       return res.status(500).json({ error: 'Failed to fetch weather data' });
     }
     
+    console.log('Weather data retrieved successfully:', weather.name);
     res.json({
       weather,
       cityName: weather.name || 'Your Location'

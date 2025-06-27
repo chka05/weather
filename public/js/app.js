@@ -87,6 +87,17 @@ function getUserLocation() {
         return;
     }
 
+    // Check if we're on localhost or HTTP (geolocation might be restricted)
+    if (location.protocol === 'http:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        weatherDisplay.innerHTML = `
+            <div class="error">
+                <p>Location access requires HTTPS.</p>
+                <p>Please select a city from the dropdown above.</p>
+            </div>
+        `;
+        return;
+    }
+
     navigator.geolocation.getCurrentPosition(
         async (position) => {
             try {
@@ -98,6 +109,8 @@ function getUserLocation() {
                 
                 weatherDisplay.innerHTML = '<div class="loading">Loading weather data...</div>';
                 
+                console.log('Making fetch request to /api/weather/location with:', { lat, lon });
+                
                 const response = await fetch('/api/weather/location', {
                     method: 'POST',
                     headers: {
@@ -106,7 +119,11 @@ function getUserLocation() {
                     body: JSON.stringify({ lat, lon })
                 });
                 
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
                 const data = await response.json();
+                console.log('Response data:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to fetch weather data');
@@ -176,6 +193,8 @@ document.getElementById('city-select').addEventListener('change', async function
         if (userLocation) {
             // Use cached location
             try {
+                console.log('Using cached location:', userLocation);
+                
                 const response = await fetch('/api/weather/location', {
                     method: 'POST',
                     headers: {
@@ -184,7 +203,9 @@ document.getElementById('city-select').addEventListener('change', async function
                     body: JSON.stringify(userLocation)
                 });
                 
+                console.log('Cached location response status:', response.status);
                 const data = await response.json();
+                console.log('Cached location response data:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to fetch weather data');
