@@ -53,26 +53,10 @@
             
             <!-- Weather Information -->
             <div id="weather-display" class="weather-display">
-                <% if (defaultWeather) { %>
-                    <h3 id="location-name"><%= defaultCity %></h3>
-                    <div class="weather-info">
-                        <div class="temperature">
-                            <span class="temp-value"><%= Math.round(defaultWeather.main.temp) %>°C</span>
-                            <span class="feels-like">Feels like <%= Math.round(defaultWeather.main.feels_like) %>°C</span>
-                        </div>
-                        <div class="weather-description">
-                            <p><%= defaultWeather.weather[0].description %></p>
-                            <img src="https://openweathermap.org/img/wn/<%= defaultWeather.weather[0].icon %>@2x.png" alt="Weather icon">
-                        </div>
-                        <div class="weather-details">
-                            <p>Humidity: <%= defaultWeather.main.humidity %>%</p>
-                            <p>Wind: <%= defaultWeather.wind.speed %> m/s</p>
-                            <p>Pressure: <%= defaultWeather.main.pressure %> hPa</p>
-                        </div>
-                    </div>
-                <% } else { %>
-                    <p>Unable to fetch weather data for your location.</p>
-                <% } %>
+                <div class="loading">
+                    <p>📍 Getting your location...</p>
+                    <p><small>Please allow location access for accurate weather data</small></p>
+                </div>
             </div>
         </div>
         

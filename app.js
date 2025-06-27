@@ -233,24 +233,6 @@ async function getUserLocationByIP(ip) {
 // Routes
 app.get('/', async (req, res) => {
   try {
-    // Get user IP
-    const userIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    console.log('User IP detected:', userIP);
-    
-    // Get user location
-    const userLocation = await getUserLocationByIP(userIP);
-    let defaultWeather = null;
-    let defaultCity = 'Your Location';
-    
-    console.log('User location result:', userLocation);
-    
-    if (userLocation && userLocation.status === 'success') {
-      console.log('Fetching weather for:', userLocation.lat, userLocation.lon);
-      defaultWeather = await getWeatherData(userLocation.lat, userLocation.lon);
-      defaultCity = userLocation.city || 'Your Location';
-      console.log('Weather data received:', defaultWeather ? 'Success' : 'Failed');
-    }
-    
     // Get current times
     const dublinTime = moment().tz('Europe/Dublin').format('YYYY-MM-DD HH:mm:ss');
     const times = {
@@ -260,15 +242,41 @@ app.get('/', async (req, res) => {
     
     res.render('index', {
       cities: majorCities,
-      defaultWeather,
-      defaultCity,
+      defaultWeather: null, // Will be loaded by browser geolocation
+      defaultCity: 'Your Location',
       times,
-      weatherApiKey: WEATHER_API_KEY !== 'YOUR_API_KEY_HERE',
+      weatherApiKey: WEATHER_API_KEY !== 'YOUR_API_KEY_HERE' && WEATHER_API_KEY !== '',
       version: `v${version}`
     });
   } catch (error) {
     console.error('Error in main route:', error);
     res.status(500).send('Server error');
+  }
+});
+
+// API endpoint to get weather for user's browser location
+app.post('/api/weather/location', async (req, res) => {
+  try {
+    const { lat, lon } = req.body;
+    
+    if (!lat || !lon) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+    
+    console.log('Getting weather for browser location:', lat, lon);
+    const weather = await getWeatherData(lat, lon);
+    
+    if (!weather) {
+      return res.status(500).json({ error: 'Failed to fetch weather data' });
+    }
+    
+    res.json({
+      weather,
+      cityName: weather.name || 'Your Location'
+    });
+  } catch (error) {
+    console.error('Error fetching location weather:', error);
+    res.status(500).json({ error: 'Failed to fetch weather data' });
   }
 });
 
