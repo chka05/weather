@@ -73,7 +73,7 @@ function displayWeatherData(weather, cityName) {
     `;
 }
 
-// Load weather for default location (Dublin)
+// Load weather for default location (Dublin) with permission denied message
 async function loadDefaultLocation() {
     const weatherDisplay = document.getElementById('weather-display');
     
@@ -106,15 +106,18 @@ async function loadDefaultLocation() {
             currentLocationOption.textContent = `Default Location (${data.cityName})`;
         }
         
-        // Show location access button
-        const locationButton = document.createElement('div');
-        locationButton.style.textAlign = 'center';
-        locationButton.style.marginTop = '20px';
-        locationButton.innerHTML = `
-            <p style="margin-bottom: 10px; color: #666; font-size: 0.9em;">Want weather for your exact location?</p>
-            <button onclick="getUserLocation()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">📍 Use My Location</button>
+        // Show permission denied message
+        const permissionMessage = document.createElement('div');
+        permissionMessage.style.textAlign = 'center';
+        permissionMessage.style.marginTop = '15px';
+        permissionMessage.style.padding = '10px';
+        permissionMessage.style.borderRadius = '4px';
+        permissionMessage.style.backgroundColor = '#ffebee';
+        permissionMessage.style.border = '1px solid #ffcdd2';
+        permissionMessage.innerHTML = `
+            <p style="margin: 0; color: #c62828; font-size: 0.9em;">📍 Location permission not granted - showing weather for Dublin, Ireland</p>
         `;
-        document.getElementById('weather-display').appendChild(locationButton);
+        document.getElementById('weather-display').appendChild(permissionMessage);
         
     } catch (error) {
         weatherDisplay.innerHTML = `
@@ -182,6 +185,19 @@ function getUserLocation() {
                 // Update the dropdown label
                 const currentLocationOption = document.querySelector('option[value="-1"]');
                 currentLocationOption.textContent = `Current Location (${data.cityName})`;
+                
+                // Show success message
+                const successMessage = document.createElement('div');
+                successMessage.style.textAlign = 'center';
+                successMessage.style.marginTop = '15px';
+                successMessage.style.padding = '10px';
+                successMessage.style.borderRadius = '4px';
+                successMessage.style.backgroundColor = '#e8f5e8';
+                successMessage.style.border = '1px solid #c8e6c9';
+                successMessage.innerHTML = `
+                    <p style="margin: 0; color: #2e7d32; font-size: 0.9em;">📍 Current location: ${data.cityName}</p>
+                `;
+                document.getElementById('weather-display').appendChild(successMessage);
                 
             } catch (error) {
                 weatherDisplay.innerHTML = `
@@ -309,8 +325,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDublinTime();
         updateSelectedCityTime();
         
-        // Load default location first (faster and more reliable)
-        loadDefaultLocation();
+        // Always try to get user's exact location first
+        getUserLocation();
     } catch (error) {
         // Silent error handling
     }
