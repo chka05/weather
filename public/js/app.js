@@ -1,128 +1,6 @@
-/**
- * WEATHER APP DEBUGGING GUIDE
- * ===========================
- * 
- * To debug issues on Coolify or any deployment:
- * 
- * 1. Open Browser Developer Console (F12)
- * 2. Look for [WEATHER-DEBUG] log messages
- * 3. Use these debug commands:
- *    - checkAPIStatus()     // Test API connectivity and environment
- *    - testLocation()       // Test geolocation services
- *    - getAppStatus()       // Get current application state
- * 
- * 4. Common Issues:
- *    - API Key not set: Check /debug/env endpoint
- *    - CORS errors: Check server logs
- *    - Location timeout: Try manual city selection
- *    - Network errors: Check fetch requests in Network tab
- * 
- * 5. All debug logs are prefixed with [WEATHER-DEBUG] for easy filtering
- */
-
 // Store current city timezone for real-time updates
 let currentCityTimezone = null;
 let userLocation = null;
-
-// Debug logging system
-const DEBUG = {
-    log: function(message, data = null) {
-        const timestamp = new Date().toISOString();
-        console.log(`[WEATHER-DEBUG ${timestamp}] ${message}`, data || '');
-    },
-    error: function(message, error = null) {
-        const timestamp = new Date().toISOString();
-        console.error(`[WEATHER-ERROR ${timestamp}] ${message}`, error || '');
-    },
-    info: function(message, data = null) {
-        const timestamp = new Date().toISOString();
-        console.info(`[WEATHER-INFO ${timestamp}] ${message}`, data || '');
-    }
-};
-
-// Initialize debugging
-DEBUG.log('Weather App Debug System Initialized');
-DEBUG.info('Current URL:', window.location.href);
-DEBUG.info('User Agent:', navigator.userAgent);
-DEBUG.info('Geolocation available:', !!navigator.geolocation);
-DEBUG.info('HTTPS enabled:', window.location.protocol === 'https:');
-
-// Debug panel in console
-console.log(`
-🌤️  WEATHER APP DEBUG CONSOLE 🌤️
-=====================================
-Use these commands to debug:
-- DEBUG.log('message', data)  // General logging
-- DEBUG.error('message', err) // Error logging  
-- DEBUG.info('message', data) // Info logging
-- checkAPIStatus()            // Test API connectivity
-- testLocation()              // Test location services
-- getAppStatus()              // Get current app status
-=====================================
-`);
-
-// Debug utility functions (available in console)
-window.checkAPIStatus = async function() {
-    DEBUG.log('Testing API connectivity...');
-    try {
-        const response = await fetch('/debug/env');
-        const data = await response.json();
-        DEBUG.info('API Status Check:', data);
-        
-        // Test weather API
-        const testResponse = await fetch('/api/weather/location', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lat: 53.3498, lon: -6.2603 })
-        });
-        
-        const testData = await testResponse.json();
-        DEBUG.info('Weather API Test:', { status: testResponse.status, data: testData });
-        
-        return { env: data, weather: { status: testResponse.status, response: testData } };
-    } catch (error) {
-        DEBUG.error('API Test Failed:', error);
-        return { error: error.message };
-    }
-};
-
-window.testLocation = function() {
-    DEBUG.log('Testing location services...');
-    if (!navigator.geolocation) {
-        DEBUG.error('Geolocation not supported');
-        return false;
-    }
-    
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            DEBUG.info('Location Success:', {
-                lat: position.coords.latitude,
-                lon: position.coords.longitude,
-                accuracy: position.coords.accuracy
-            });
-        },
-        (error) => {
-            DEBUG.error('Location Error:', {
-                code: error.code,
-                message: error.message
-            });
-        },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
-    );
-};
-
-window.getAppStatus = function() {
-    const status = {
-        userLocation: userLocation,
-        currentTimezone: currentCityTimezone,
-        selectedCity: document.getElementById('city-select').value,
-        weatherDisplayContent: document.getElementById('weather-display').innerHTML.length,
-        pageProtocol: window.location.protocol,
-        timestamp: new Date().toISOString()
-    };
-    DEBUG.info('App Status:', status);
-    return status;
-};
 
 // Update Dublin time display
 function updateDublinTime() {
@@ -197,7 +75,6 @@ function displayWeatherData(weather, cityName) {
 
 // Load weather for default location (Dublin)
 async function loadDefaultLocation() {
-    DEBUG.log('Starting loadDefaultLocation function');
     const weatherDisplay = document.getElementById('weather-display');
     
     try {
@@ -207,51 +84,26 @@ async function loadDefaultLocation() {
         const defaultLat = 53.3498;
         const defaultLon = -6.2603;
         
-        DEBUG.info('Default location coordinates:', { lat: defaultLat, lon: defaultLon });
-        
-        const requestBody = { lat: defaultLat, lon: defaultLon };
-        DEBUG.log('Making POST request to /api/weather/location', requestBody);
-        
         const response = await fetch('/api/weather/location', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({ lat: defaultLat, lon: defaultLon })
         });
         
-        DEBUG.info('Response received:', {
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries())
-        });
-        
-        let data;
-        try {
-            data = await response.json();
-            DEBUG.info('Response data:', data);
-        } catch (parseError) {
-            DEBUG.error('Failed to parse JSON response:', parseError);
-            const text = await response.text();
-            DEBUG.error('Raw response text:', text);
-            throw new Error('Invalid JSON response from server');
-        }
+        const data = await response.json();
         
         if (!response.ok) {
-            DEBUG.error('API request failed:', { status: response.status, error: data.error });
             throw new Error(data.error || `Server error: ${response.status}`);
         }
         
-        DEBUG.log('Weather data received successfully, displaying...');
         displayWeatherData(data.weather, data.cityName);
         
         // Update the dropdown label
         const currentLocationOption = document.querySelector('option[value="-1"]');
         if (currentLocationOption) {
             currentLocationOption.textContent = `Default Location (${data.cityName})`;
-            DEBUG.info('Updated dropdown label:', data.cityName);
-        } else {
-            DEBUG.error('Could not find dropdown option with value="-1"');
         }
         
         // Show location access button
@@ -263,21 +115,12 @@ async function loadDefaultLocation() {
             <button onclick="getUserLocation()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">📍 Use My Location</button>
         `;
         document.getElementById('weather-display').appendChild(locationButton);
-        DEBUG.log('Added location button to UI');
         
     } catch (error) {
-        DEBUG.error('Error in loadDefaultLocation:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
-        
         weatherDisplay.innerHTML = `
             <div class="error">
                 <p>Unable to load weather data.</p>
-                <p>Error: ${error.message}</p>
                 <p>Please select a city from the dropdown above.</p>
-                <button onclick="checkAPIStatus()" style="margin-top: 10px; padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">🔧 Debug API</button>
             </div>
         `;
     }
@@ -316,12 +159,9 @@ function getUserLocation() {
                 const lat = position.coords.latitude;
                 const lon = position.coords.longitude;
                 
-                console.log('User location:', lat, lon);
                 userLocation = { lat, lon };
                 
                 weatherDisplay.innerHTML = '<div class="loading">Loading weather data...</div>';
-                
-                console.log('Making fetch request to /api/weather/location with:', { lat, lon });
                 
                 const response = await fetch('/api/weather/location', {
                     method: 'POST',
@@ -331,11 +171,7 @@ function getUserLocation() {
                     body: JSON.stringify({ lat, lon })
                 });
                 
-                console.log('Response status:', response.status);
-                console.log('Response headers:', [...response.headers.entries()]);
-                
                 const data = await response.json();
-                console.log('Response data:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to fetch weather data');
@@ -348,7 +184,6 @@ function getUserLocation() {
                 currentLocationOption.textContent = `Current Location (${data.cityName})`;
                 
             } catch (error) {
-                console.error('Error fetching weather:', error);
                 weatherDisplay.innerHTML = `
                     <div class="error">
                         <p>Error loading weather data: ${error.message}</p>
@@ -358,7 +193,6 @@ function getUserLocation() {
             }
         },
         (error) => {
-            console.error('Geolocation error:', error);
             let errorMessage = 'Unable to get your location.';
             
             switch (error.code) {
@@ -410,8 +244,6 @@ document.getElementById('city-select').addEventListener('change', async function
         if (userLocation) {
             // Use cached user location
             try {
-                console.log('Using cached location:', userLocation);
-                
                 const response = await fetch('/api/weather/location', {
                     method: 'POST',
                     headers: {
@@ -420,9 +252,7 @@ document.getElementById('city-select').addEventListener('change', async function
                     body: JSON.stringify(userLocation)
                 });
                 
-                console.log('Cached location response status:', response.status);
                 const data = await response.json();
-                console.log('Cached location response data:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to fetch weather data');
@@ -430,7 +260,6 @@ document.getElementById('city-select').addEventListener('change', async function
                 
                 displayWeatherData(data.weather, data.cityName);
             } catch (error) {
-                console.error('Error:', error);
                 weatherDisplay.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
         } else {
@@ -463,7 +292,6 @@ document.getElementById('city-select').addEventListener('change', async function
             weatherDisplay.innerHTML = '<div class="error">Unable to fetch weather data for this city.</div>';
         }
     } catch (error) {
-        console.error('Error:', error);
         weatherDisplay.innerHTML = `<div class="error">Error: ${error.message}</div>`;
     }
 });
@@ -476,20 +304,14 @@ setInterval(() => {
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
-    DEBUG.log('DOM Content Loaded - Initializing Weather App');
-    
     try {
         // Initial time update
-        DEBUG.log('Updating time displays');
         updateDublinTime();
         updateSelectedCityTime();
         
         // Load default location first (faster and more reliable)
-        DEBUG.log('Loading default location');
         loadDefaultLocation();
-        
-        DEBUG.log('App initialization completed successfully');
     } catch (error) {
-        DEBUG.error('Error during app initialization:', error);
+        // Silent error handling
     }
 });

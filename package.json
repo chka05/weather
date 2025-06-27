@@ -1,6 +1,6 @@
 {
   "name": "weather-app",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "Simple weather and time app built with Node.js",
   "main": "app.js",
   "scripts": {
