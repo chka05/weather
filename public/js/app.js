@@ -14,19 +14,8 @@ function updateTimes() {
     document.getElementById('dublin-time').textContent = dublinTime.replace(',', '');
 }
 
-// City timezone mapping
-const cityTimezones = {
-    '0': 'America/New_York',
-    '1': 'Europe/London',
-    '2': 'Asia/Tokyo',
-    '3': 'Australia/Sydney',
-    '4': 'Europe/Paris',
-    '5': 'Asia/Dubai',
-    '6': 'Asia/Singapore',
-    '7': 'America/Los_Angeles',
-    '8': 'Europe/Berlin',
-    '9': 'Asia/Kolkata'
-};
+// Store current city timezone for real-time updates
+let currentCityTimezone = null;
 
 // Handle city selection change
 document.getElementById('city-select').addEventListener('change', async function() {
@@ -37,7 +26,9 @@ document.getElementById('city-select').addEventListener('change', async function
     weatherDisplay.innerHTML = '<div class="loading">Loading weather data...</div>';
     
     if (selectedIndex === '-1') {
-        // Reload page to show current location weather
+        // Reset timezone and reload page to show current location weather
+        currentCityTimezone = null;
+        document.getElementById('selected-city-time-label').textContent = 'Local Time';
         window.location.reload();
         return;
     }
@@ -54,6 +45,9 @@ document.getElementById('city-select').addEventListener('change', async function
         // Update selected city time label and display
         document.getElementById('selected-city-time-label').textContent = `${data.cityName} Time`;
         document.getElementById('selected-city-time').textContent = data.cityTime;
+        
+        // Store timezone for real-time updates
+        currentCityTimezone = data.timezone;
         
         // Update weather display
         if (data.weather) {
@@ -76,10 +70,7 @@ document.getElementById('city-select').addEventListener('change', async function
                 </div>
             `;
             
-            // Update the time for selected city continuously
-            if (selectedIndex !== '-1') {
-                window.selectedTimezone = cityTimezones[selectedIndex];
-            }
+            // Timezone is now stored in currentCityTimezone
         } else {
             weatherDisplay.innerHTML = '<div class="error">Unable to fetch weather data for this city.</div>';
         }
@@ -94,9 +85,9 @@ function updateSelectedCityTime() {
     const citySelect = document.getElementById('city-select');
     const selectedIndex = citySelect.value;
     
-    if (selectedIndex !== '-1' && window.selectedTimezone) {
+    if (selectedIndex !== '-1' && currentCityTimezone) {
         const cityTime = new Date().toLocaleString('en-US', {
-            timeZone: window.selectedTimezone,
+            timeZone: currentCityTimezone,
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',

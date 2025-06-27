@@ -37,9 +37,17 @@
                 <label for="city-select">Select a city:</label>
                 <select id="city-select">
                     <option value="-1" selected>Current Location (<%= defaultCity %>)</option>
-                    <% cities.forEach((city, index) => { %>
-                        <option value="<%= index %>"><%= city.name %></option>
-                    <% }) %>
+                    <% 
+                    const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
+                    let cityIndex = 0;
+                    continents.forEach(continent => { %>
+                        <optgroup label="<%= continent %>">
+                            <% cities.filter(city => city.continent === continent).forEach(city => { %>
+                                <option value="<%= cityIndex %>"><%= city.name %></option>
+                                <% cityIndex++; %>
+                            <% }); %>
+                        </optgroup>
+                    <% }); %>
                 </select>
             </div>
             

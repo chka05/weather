@@ -112,6 +112,18 @@ h2 {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
 }
 
+#city-select optgroup {
+    font-weight: bold;
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+#city-select option {
+    font-weight: normal;
+    color: #333;
+    padding: 5px 10px;
+}
+
 .weather-display {
     margin-top: 30px;
     text-align: center;
