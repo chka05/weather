@@ -52,16 +52,38 @@ async function getWeatherData(lat, lon) {
 // Function to get user location by IP
 async function getUserLocationByIP(ip) {
   try {
-    // For local development, use a default IP
-    if (ip === '::1' || ip === '127.0.0.1') {
+    // For local development and private IPs, use empty string to auto-detect public IP
+    if (ip === '::1' || ip === '127.0.0.1' || ip === '::ffff:127.0.0.1' || 
+        ip?.startsWith('::ffff:172.') || ip?.startsWith('172.') || 
+        ip?.startsWith('192.168.') || ip?.startsWith('10.')) {
       ip = '';
     }
     
+    console.log('Attempting to get location for IP:', ip || 'auto-detect');
     const response = await axios.get(`http://ip-api.com/json/${ip}`);
+    console.log('IP geolocation response:', response.data);
+    
+    // If geolocation fails or returns private range, use default location
+    if (response.data.status !== 'success') {
+      console.log('IP geolocation failed, using default Dublin location');
+      return {
+        status: 'success',
+        city: 'Dublin',
+        lat: 53.3498,
+        lon: -6.2603
+      };
+    }
+    
     return response.data;
   } catch (error) {
     console.error('Error getting location by IP:', error.message);
-    return null;
+    // Return default Dublin location if IP geolocation fails
+    return {
+      status: 'success',
+      city: 'Dublin',
+      lat: 53.3498,
+      lon: -6.2603
+    };
   }
 }
 
@@ -70,15 +92,20 @@ app.get('/', async (req, res) => {
   try {
     // Get user IP
     const userIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    console.log('User IP detected:', userIP);
     
     // Get user location
     const userLocation = await getUserLocationByIP(userIP);
     let defaultWeather = null;
     let defaultCity = 'Your Location';
     
+    console.log('User location result:', userLocation);
+    
     if (userLocation && userLocation.status === 'success') {
+      console.log('Fetching weather for:', userLocation.lat, userLocation.lon);
       defaultWeather = await getWeatherData(userLocation.lat, userLocation.lon);
       defaultCity = userLocation.city || 'Your Location';
+      console.log('Weather data received:', defaultWeather ? 'Success' : 'Failed');
     }
     
     // Get current times
