@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const moment = require('moment-timezone');
 const path = require('path');
+const { version } = require('./package.json');
 require('dotenv').config();
 
 const app = express();
@@ -120,7 +121,8 @@ app.get('/', async (req, res) => {
       defaultWeather,
       defaultCity,
       times,
-      weatherApiKey: WEATHER_API_KEY !== 'YOUR_API_KEY_HERE'
+      weatherApiKey: WEATHER_API_KEY !== 'YOUR_API_KEY_HERE',
+      version: `v${version}`
     });
   } catch (error) {
     console.error('Error in main route:', error);
