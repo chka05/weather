@@ -1,0 +1,223 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+h2 {
+    color: #555;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.time-section {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 40px;
+    gap: 20px;
+}
+
+.time-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    flex: 1;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.time-card h3 {
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.time-display {
+    font-size: 1.5em;
+    color: #333;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+.weather-section {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.location-selector {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.location-selector label {
+    font-size: 1.1em;
+    color: #555;
+    margin-right: 10px;
+}
+
+#city-select {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#city-select:hover {
+    border-color: #764ba2;
+}
+
+#city-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.weather-display {
+    margin-top: 30px;
+    text-align: center;
+}
+
+#location-name {
+    color: #667eea;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.weather-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.temperature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.temp-value {
+    font-size: 3em;
+    color: #333;
+    font-weight: bold;
+}
+
+.feels-like {
+    color: #666;
+    font-size: 1.1em;
+    margin-top: 5px;
+}
+
+.weather-description {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.weather-description p {
+    font-size: 1.3em;
+    color: #555;
+    text-transform: capitalize;
+}
+
+.weather-description img {
+    width: 100px;
+    height: 100px;
+}
+
+.weather-details {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.weather-details p {
+    color: #666;
+    font-size: 1.1em;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.error {
+    text-align: center;
+    color: #dc3545;
+    padding: 20px;
+    background: #f8d7da;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+    
+    .time-section {
+        flex-direction: column;
+    }
+    
+    .weather-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .weather-details {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .temp-value {
+        font-size: 2.5em;
+    }
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Weather App</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Weather & Time App</h1>
+        
+        <% if (!weatherApiKey) { %>
+        <div class="warning">
+            <p>⚠️ OpenWeatherMap API key not set. Please add your API key to the .env file.</p>
+        </div>
+        <% } %>
+        
+        <!-- Time Display -->
+        <div class="time-section">
+            <div class="time-card">
+                <h3>Dublin Time</h3>
+                <p id="dublin-time" class="time-display"><%= times.dublin %></p>
+            </div>
+            <div class="time-card">
+                <h3 id="selected-city-time-label">Local Time</h3>
+                <p id="selected-city-time" class="time-display"><%= times.local %></p>
+            </div>
+        </div>
+        
+        <!-- Weather Display -->
+        <div class="weather-section">
+            <h2>Current Weather</h2>
+            
+            <!-- Location Selection -->
+            <div class="location-selector">
+                <label for="city-select">Select a city:</label>
+                <select id="city-select">
+                    <option value="-1" selected>Current Location (<%= defaultCity %>)</option>
+                    <% cities.forEach((city, index) => { %>
+                        <option value="<%= index %>"><%= city.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            
+            <!-- Weather Information -->
+            <div id="weather-display" class="weather-display">
+                <% if (defaultWeather) { %>
+                    <h3 id="location-name"><%= defaultCity %></h3>
+                    <div class="weather-info">
+                        <div class="temperature">
+                            <span class="temp-value"><%= Math.round(defaultWeather.main.temp) %>°C</span>
+                            <span class="feels-like">Feels like <%= Math.round(defaultWeather.main.feels_like) %>°C</span>
+                        </div>
+                        <div class="weather-description">
+                            <p><%= defaultWeather.weather[0].description %></p>
+                            <img src="https://openweathermap.org/img/wn/<%= defaultWeather.weather[0].icon %>@2x.png" alt="Weather icon">
+                        </div>
+                        <div class="weather-details">
+                            <p>Humidity: <%= defaultWeather.main.humidity %>%</p>
+                            <p>Wind: <%= defaultWeather.wind.speed %> m/s</p>
+                            <p>Pressure: <%= defaultWeather.main.pressure %> hPa</p>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <p>Unable to fetch weather data for your location.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/app.js"></script>
+</body>
+</html>
