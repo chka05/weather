@@ -171,8 +171,15 @@ Object.keys(citiesByContinent).sort().forEach(continent => {
 });
 
 // OpenWeatherMap API configuration
-const WEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || 'YOUR_API_KEY_HERE';
+const WEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || process.env.OPENWEATHERMAP_API_KEY || 'YOUR_API_KEY_HERE';
 const WEATHER_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
+
+console.log('=== ENVIRONMENT CHECK ===');
+console.log('OPENWEATHER_API_KEY exists:', !!process.env.OPENWEATHER_API_KEY);
+console.log('OPENWEATHERMAP_API_KEY exists:', !!process.env.OPENWEATHERMAP_API_KEY);
+console.log('Final API key starts with:', WEATHER_API_KEY ? WEATHER_API_KEY.substring(0, 8) + '...' : 'none');
+console.log('API key length:', WEATHER_API_KEY ? WEATHER_API_KEY.length : 0);
+console.log('========================');
 
 // Function to get weather data
 async function getWeatherData(lat, lon) {
@@ -256,7 +263,7 @@ app.get('/', async (req, res) => {
       defaultCity: 'Your Location',
       times,
       weatherApiKey: hasValidApiKey,
-      version: `v${version}`
+      version: `v${version.split('.').slice(0, 2).join('.')}`
     });
   } catch (error) {
     console.error('Error in main route:', error);
@@ -326,8 +333,16 @@ app.get('/debug/env', (req, res) => {
     hasApiKey: !!WEATHER_API_KEY,
     apiKeyLength: WEATHER_API_KEY ? WEATHER_API_KEY.length : 0,
     apiKeyStart: WEATHER_API_KEY ? WEATHER_API_KEY.substring(0, 8) + '...' : 'none',
+    isDefaultKey: WEATHER_API_KEY === 'YOUR_API_KEY_HERE',
     nodeEnv: process.env.NODE_ENV,
-    port: PORT
+    port: PORT,
+    version: `v${version.split('.').slice(0, 2).join('.')}`,
+    envVars: {
+      OPENWEATHER_API_KEY: !!process.env.OPENWEATHER_API_KEY,
+      OPENWEATHERMAP_API_KEY: !!process.env.OPENWEATHERMAP_API_KEY,
+      PORT: process.env.PORT,
+      NODE_ENV: process.env.NODE_ENV
+    }
   });
 });
 
