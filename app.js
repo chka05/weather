@@ -240,12 +240,22 @@ app.get('/', async (req, res) => {
       local: moment().format('YYYY-MM-DD HH:mm:ss')
     };
     
+    console.log('API Key check - WEATHER_API_KEY:', WEATHER_API_KEY ? 'SET' : 'NOT SET');
+    console.log('API Key length:', WEATHER_API_KEY ? WEATHER_API_KEY.length : 0);
+    
+    const hasValidApiKey = WEATHER_API_KEY && 
+                          WEATHER_API_KEY !== 'YOUR_API_KEY_HERE' && 
+                          WEATHER_API_KEY !== '' && 
+                          WEATHER_API_KEY.length > 10; // OpenWeatherMap keys are typically 32 characters
+    
+    console.log('Has valid API key:', hasValidApiKey);
+    
     res.render('index', {
       cities: majorCities,
       defaultWeather: null, // Will be loaded by browser geolocation
       defaultCity: 'Your Location',
       times,
-      weatherApiKey: WEATHER_API_KEY !== 'YOUR_API_KEY_HERE' && WEATHER_API_KEY !== '',
+      weatherApiKey: hasValidApiKey,
       version: `v${version}`
     });
   } catch (error) {
@@ -310,7 +320,22 @@ app.get('/api/weather/:cityIndex', async (req, res) => {
   }
 });
 
+// Debug endpoint to check environment variables (remove in production)
+app.get('/debug/env', (req, res) => {
+  res.json({
+    hasApiKey: !!WEATHER_API_KEY,
+    apiKeyLength: WEATHER_API_KEY ? WEATHER_API_KEY.length : 0,
+    apiKeyStart: WEATHER_API_KEY ? WEATHER_API_KEY.substring(0, 8) + '...' : 'none',
+    nodeEnv: process.env.NODE_ENV,
+    port: PORT
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Weather app is running on http://localhost:${PORT}`);
+  console.log(`Environment check:`);
+  console.log(`- API Key set: ${!!WEATHER_API_KEY}`);
+  console.log(`- API Key length: ${WEATHER_API_KEY ? WEATHER_API_KEY.length : 0}`);
+  console.log(`- Port: ${PORT}`);
 });
