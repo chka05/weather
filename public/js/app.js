@@ -73,6 +73,60 @@ function displayWeatherData(weather, cityName) {
     `;
 }
 
+// Load weather for default location (Dublin)
+async function loadDefaultLocation() {
+    const weatherDisplay = document.getElementById('weather-display');
+    
+    try {
+        weatherDisplay.innerHTML = '<div class="loading">Loading default location weather...</div>';
+        
+        // Use Dublin as default location
+        const defaultLat = 53.3498;
+        const defaultLon = -6.2603;
+        
+        console.log('Loading default location (Dublin):', defaultLat, defaultLon);
+        
+        const response = await fetch('/api/weather/location', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ lat: defaultLat, lon: defaultLon })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to fetch weather data');
+        }
+        
+        displayWeatherData(data.weather, data.cityName);
+        
+        // Update the dropdown label
+        const currentLocationOption = document.querySelector('option[value="-1"]');
+        currentLocationOption.textContent = `Default Location (${data.cityName})`;
+        
+        // Show location access button
+        const locationButton = document.createElement('div');
+        locationButton.style.textAlign = 'center';
+        locationButton.style.marginTop = '20px';
+        locationButton.innerHTML = `
+            <p style="margin-bottom: 10px; color: #666; font-size: 0.9em;">Want weather for your exact location?</p>
+            <button onclick="getUserLocation()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">📍 Use My Location</button>
+        `;
+        document.getElementById('weather-display').appendChild(locationButton);
+        
+    } catch (error) {
+        console.error('Error loading default location:', error);
+        weatherDisplay.innerHTML = `
+            <div class="error">
+                <p>Unable to load weather data.</p>
+                <p>Please select a city from the dropdown above.</p>
+            </div>
+        `;
+    }
+}
+
 // Get user's location using browser geolocation
 function getUserLocation() {
     const weatherDisplay = document.getElementById('weather-display');
@@ -97,6 +151,8 @@ function getUserLocation() {
         `;
         return;
     }
+    
+    weatherDisplay.innerHTML = '<div class="loading">📍 Getting your precise location...</div>';
 
     navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -151,28 +207,33 @@ function getUserLocation() {
             
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    errorMessage = 'Location access denied. Please allow location access and refresh the page.';
+                    errorMessage = 'Location access denied. Using default location instead.';
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    errorMessage = 'Location information is unavailable.';
+                    errorMessage = 'Location unavailable. Using default location instead.';
                     break;
                 case error.TIMEOUT:
-                    errorMessage = 'Location request timed out.';
+                    errorMessage = 'Location request timed out. Using default location instead.';
                     break;
             }
             
+            // Show error briefly then load default location
             weatherDisplay.innerHTML = `
-                <div class="error">
+                <div class="loading">
                     <p>${errorMessage}</p>
-                    <p>Please select a city from the dropdown above.</p>
-                    <button onclick="getUserLocation()" style="margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">Try Again</button>
+                    <p>Loading weather for default location...</p>
                 </div>
             `;
+            
+            // Load default location after a brief delay
+            setTimeout(() => {
+                loadDefaultLocation();
+            }, 2000);
         },
         {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000 // 5 minutes
+            enableHighAccuracy: false, // Faster but less accurate
+            timeout: 15000, // Increased timeout to 15 seconds
+            maximumAge: 600000 // 10 minutes cache
         }
     );
 }
@@ -191,7 +252,7 @@ document.getElementById('city-select').addEventListener('change', async function
         document.getElementById('selected-city-time-label').textContent = 'Local Time';
         
         if (userLocation) {
-            // Use cached location
+            // Use cached user location
             try {
                 console.log('Using cached location:', userLocation);
                 
@@ -217,8 +278,8 @@ document.getElementById('city-select').addEventListener('change', async function
                 weatherDisplay.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
         } else {
-            // Get fresh location
-            getUserLocation();
+            // Load default location
+            loadDefaultLocation();
         }
         return;
     }
@@ -263,6 +324,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDublinTime();
     updateSelectedCityTime();
     
-    // Get user's location on page load
-    getUserLocation();
+    // Load default location first (faster and more reliable)
+    loadDefaultLocation();
 });
